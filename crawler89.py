@@ -96,12 +96,15 @@ def crawler89():
 		writer = csv.DictWriter(saida, fieldnames=colunas, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 		for registro in sorted(registros, key=lambda x: x['hour']):
 			inserir = True
-			for item in ultimas:
-				if 'onair' in registro and registro['onair'] == 'False' \
-					or tags['TIPO'] in registro and registro[tags['TIPO']] == 'STOPPED' \
-					or registro[tags['ARTISTA']] == item['ARTISTA'] \
+			if 'onair' in registro and registro['onair'] == 'False' \
+				or tags['TIPO'] in registro and registro[tags['TIPO']] == 'STOPPED':
+				inserir = False
+
+			if inserir:
+				for item in ultimas:
+					if registro[tags['ARTISTA']] == item['ARTISTA'] \
 						and registro[tags['MUSICA']] == item['MUSICA']:
-					inserir = False
+						inserir = False
 
 			if inserir:
 				print(registro[tags['REPRODUCAO']], registro[tags['ARTISTA']], '-', registro[tags['MUSICA']])
