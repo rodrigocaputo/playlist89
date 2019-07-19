@@ -1,14 +1,35 @@
 import urllib, xmltodict, json, time, threading, os, csv
-from datetime import date
+from datetime import date, datetime
+
+def crawler89Json():
+	agora = int(time.time())
+	url = 'https://players.gc2.com.br/cron/89fm/results2.json?_=' + str(agora)
+	response = urllib.request.urlopen(url)
+	data = json.loads(response.read())
+	data['musicas']['tocando']['onair'] = True
+	if data['musicas']['tocando']['singer'] != '89FM A Rádio Rock':
+		agora = datetime.now()
+		data['musicas']['tocando']['hour'] = str(agora.hour).zfill(2) + ':' + str(agora.minute).zfill(2) + ':' + str(agora.second).zfill(2)
+		data['musicas']['tocando']['ISRC'] = None
+		return data
+
+	raise 'Falha no crawler89Json'
 
 def crawler89():
 
 	url = 'https://players.gc2.com.br/pulsar/rockpulsar.xml'
-	#url = 'https://players.gc2.com.br/cron/89fm/results2.json?_=' + str(agora)
-	response = urllib.request.urlopen(url)
-	data = response.read()
-	response.close()
-	data = xmltodict.parse(data)
+	try:
+		response = urllib.request.urlopen(url)
+		data = response.read()
+		response.close()
+		data = xmltodict.parse(data)
+	except:
+		try:
+			data = crawler89Json()
+		except:
+			threading.Timer(60.0, crawler89).start()
+			return
+
 	registros = []
 	for itens in data['musicas']:
 		itens = data['musicas'][itens]
@@ -121,23 +142,3 @@ def crawler89():
 	threading.Timer(60.0, crawler89).start()
 
 crawler89()
-
-
-	# #with open('playlist89.txt', 'r') as f:
-	# #	lines = f.read().splitlines()
-	# #	ultimas = lines[-4:]
-
-	# agora = int(time.time())
-	# print time.ctime(agora)
-	# url = 'https://players.gc2.com.br/pulsar/rockpulsar.xml'
-	# #url = 'https://players.gc2.com.br/cron/89fm/results2.json?_=' + str(agora)
-	# response = urllib.urlopen(url)
-	# print response
-	# exit(1)
-	# data = json.loads(response.read())
-	# print data
-	# for item in reversed(data['musicas']['jatocou']):
-	# 	musica = item['song'] + ' - ' + item['singer']
-	# 	if musica not in ultimas:
-	# 		with open('playlist89.txt', 'a') as f:
-	# 			f.write('\n' + musica)
